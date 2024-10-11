@@ -103,9 +103,8 @@ func (l *Lexer) peekChar() byte {
 	// todo)) update for utf8 support
 	if l.readPosition >= len(l.input) {
 		return 0
-	} else {
-		return l.input[l.readPosition]
 	}
+	return l.input[l.readPosition]
 }
 
 func (l *Lexer) readIdentifier() string {
@@ -129,5 +128,3 @@ func (l *Lexer) eatWhitespace() {
 		l.readChar()
 	}
 }
-
-func isLetter(ch byte) bool { return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' }
