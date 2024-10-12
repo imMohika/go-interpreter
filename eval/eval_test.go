@@ -52,6 +52,8 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"1 != 1", false},
 		{"1 == 2", false},
 		{"1 != 2", true},
+		{"1 <= 2", true},
+		{"1 >= 2", false},
 		{"true == true", true},
 		{"false == false", true},
 		{"true == false", false},
@@ -222,6 +224,22 @@ func TestFunctionCall(t *testing.T) {
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
+func BenchmarkFib(b *testing.B) {
+	input := `
+var fib = fun (n) {
+if (n <=1) {
+return n;
+}
+return fib(n-1) + fib(n-2);
+}
+
+fib(20)
+`
+	for i := 0; i < b.N; i++ {
+		testEval(input)
 	}
 }
 
