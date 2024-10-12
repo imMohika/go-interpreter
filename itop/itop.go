@@ -3,7 +3,9 @@ package itop
 import (
 	"bufio"
 	"fmt"
+	"go-interpreter/eval"
 	"go-interpreter/lexer"
+	"go-interpreter/object"
 	"go-interpreter/parser"
 	"io"
 )
@@ -12,6 +14,7 @@ const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
 
 	for {
 		fmt.Fprint(out, PROMPT)
@@ -30,7 +33,10 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		fmt.Fprintf(out, "%+v\n", program.String())
+		evaluated := eval.Eval(program, env)
+		if evaluated != nil {
+			fmt.Fprintf(out, "- : %s = %+v\n", evaluated.Type(), evaluated.Inspect())
+		}
 
 		//for tkn := lxr.NextToken(); tkn.Type != token.EOF; tkn = lxr.NextToken() {
 		//	fmt.Fprintf(out, "%+v\n", tkn)
