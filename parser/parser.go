@@ -62,6 +62,7 @@ func New(lxr *lexer.Lexer) *Parser {
 	p.addPrefixFunc(token.LEFT_PAREN, p.parseGroupedExpression)
 	p.addPrefixFunc(token.IF, p.parseIfExpression)
 	p.addPrefixFunc(token.FUNCTION, p.parseFunctionLiteral)
+	p.addPrefixFunc(token.STRING, p.parseStringLiteral)
 
 	p.infixParseFuncs = make(map[token.TokenType]infixParseFunc)
 	p.addInfixFunc(token.PLUS, p.parseInfixExpression)
@@ -400,4 +401,11 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 	}
 
 	return args
+}
+
+func (p *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{
+		Token: token.Token{},
+		Value: p.currentToken.Literal,
+	}
 }

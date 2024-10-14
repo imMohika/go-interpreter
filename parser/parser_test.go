@@ -689,6 +689,33 @@ func TestCallExpressionParameterParsing(t *testing.T) {
 	}
 }
 
+func TestStringLiteralExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`"nice";`, "nice"},
+		{"`hello`;", "hello"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		statement := program.Statements[0].(*ast.ExpressionStatement)
+		literal, ok := statement.Value.(*ast.StringLiteral)
+		if !ok {
+			t.Fatalf("statement is not ast.StringLiteral. got=%T", statement.Value)
+		}
+
+		if literal.Value != tt.expected {
+			t.Errorf("literal value wrong. want=%q, got=%q", tt.expected, literal.Value)
+		}
+	}
+}
+
 func checkParserErrors(t *testing.T, parsr *Parser) {
 	errors := parsr.Errors()
 	if len(errors) == 0 {

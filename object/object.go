@@ -16,6 +16,7 @@ const (
 	NULL_OBJECT         ObjectType = "Null"
 	RETURN_VALUE_OBJECT ObjectType = "ReturnValue"
 	FUNCTION_OBJECT     ObjectType = "Function"
+	STRING_OBJECT       ObjectType = "String"
 )
 
 type Object interface {
@@ -134,4 +135,16 @@ func (f *Function) Inspect() string {
 	out.WriteString("\n}")
 
 	return out.String()
+}
+
+type String struct {
+	Value string
+}
+
+func (s String) Type() ObjectType {
+	return STRING_OBJECT
+}
+
+func (s String) Inspect() string {
+	return s.Value
 }

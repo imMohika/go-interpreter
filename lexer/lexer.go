@@ -77,6 +77,12 @@ func (l *Lexer) NextToken() token.Token {
 		tok = token.New(token.LEFT_BRACE, string(l.currChar))
 	case '}':
 		tok = token.New(token.RIGHT_BRACE, string(l.currChar))
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString('"')
+	case '`':
+		tok.Type = token.STRING
+		tok.Literal = l.readString('`')
 	case 0:
 		tok.Type = token.EOF
 		tok.Literal = ""
@@ -139,4 +145,41 @@ func (l *Lexer) eatWhitespace() {
 	for l.currChar == ' ' || l.currChar == '\t' || l.currChar == '\n' || l.currChar == '\r' {
 		l.readChar()
 	}
+}
+
+func (l *Lexer) readString(deli byte) string {
+	out := ""
+	for {
+		l.readChar()
+		if l.currChar == deli || l.currChar == 0 {
+			break
+		}
+
+		if l.currChar == '\\' {
+			if l.peekChar() == '\n' {
+				l.readChar()
+				continue
+			}
+
+			l.readChar()
+
+			switch l.currChar {
+			case 'n':
+				l.currChar = '\n'
+			case 'r':
+				l.currChar = '\r'
+			case 't':
+				l.currChar = '\t'
+			case '"':
+				l.currChar = '"'
+			case '\\':
+				l.currChar = '\\'
+			case 0:
+				break
+			}
+		}
+
+		out = out + string(l.currChar)
+	}
+	return out
 }

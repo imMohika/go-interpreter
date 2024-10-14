@@ -63,6 +63,9 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"(1 < 2) == false", false},
 		{"(1 > 2) == true", false},
 		{"(1 > 2) == false", true},
+		{`"nice" == "nice"`, true},
+		{`"hello" != "nice"`, true},
+		{`"hello" == "nice"`, false},
 	}
 
 	for _, tt := range tests {
@@ -151,6 +154,7 @@ func TestErrorHandling(t *testing.T) {
 		{` if (10 > 1) { if (10 > 1) { return true + false; }  return 1; } `, "unknown operator: Boolean + Boolean"},
 		{"foobar", "identifier not found: foobar"},
 		{"if (false) { var x = 10; } x;", "identifier not found: x"},
+		{`"hello" - "world"`, "unknown operator: String - String"},
 	}
 
 	for _, tt := range tests {
@@ -224,6 +228,28 @@ func TestFunctionCall(t *testing.T) {
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestStringLiteral(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`"nice"`, "nice"},
+		{`"hello" + " world"`, "hello world"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		str, ok := evaluated.(*object.String)
+		if !ok {
+			t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+		}
+
+		if str.Value != tt.expected {
+			t.Errorf("value is wrong. got=%q, want=%q", str.Value, tt.expected)
+		}
 	}
 }
 

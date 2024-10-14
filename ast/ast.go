@@ -181,6 +181,24 @@ func (i IntegerLiteral) expressionNode() {
 	panic("implement me")
 }
 
+type StringLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (s *StringLiteral) TokenLiteral() string {
+	return s.Token.Literal
+}
+
+func (s *StringLiteral) String() string {
+	return s.Token.Literal
+}
+
+func (s *StringLiteral) expressionNode() {
+	//TODO implement me
+	panic("implement me")
+}
+
 type PrefixExpression struct {
 	Token    token.Token
 	Operator string
