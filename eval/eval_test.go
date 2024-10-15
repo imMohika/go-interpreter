@@ -261,6 +261,7 @@ func TestBuiltinFunction(t *testing.T) {
 		{`len("")`, 0},
 		{`len("hello")`, 5},
 		{"len(`hello`)", 5},
+		{"len([1,2,3])", 3},
 		{`len(69)`, "argument to `len` not supported, got Integer"},
 		{`len("one", "one")`, "wrong number of arguments, got=2, want=1"},
 	}
@@ -281,6 +282,82 @@ func TestBuiltinFunction(t *testing.T) {
 			if errObj.Message != expected {
 				t.Errorf("wrong error message, got=%q, want=%q", errObj.Message, expected)
 			}
+		}
+	}
+}
+
+func TestArrayLiterals(t *testing.T) {
+	input := "[420, 69, 2 * 2]"
+
+	evaluated := testEval(input)
+	arr, ok := evaluated.(*object.Array)
+	if !ok {
+		t.Fatalf("object is not Array. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if len(arr.Elements) != 3 {
+		t.Fatalf("array has wrong number of elements. got=%d, want=%d", len(arr.Elements), 3)
+	}
+
+	testIntegerObject(t, arr.Elements[0], 420)
+	testIntegerObject(t, arr.Elements[1], 69)
+	testIntegerObject(t, arr.Elements[2], 4)
+}
+
+func TestArrayIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			"[1, 2, 3][0]",
+			1,
+		},
+		{
+			"[1, 2, 3][1]",
+			2,
+		},
+		{
+			"[1, 2, 3][2]",
+			3,
+		},
+		{
+			"var i = 0; [1][i];",
+			1,
+		},
+		{
+			"[1, 2, 3][1 + 1];",
+			3,
+		},
+		{
+			"var myArray = [1, 2, 3]; myArray[2];",
+			3,
+		},
+		{
+			"var myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+			6,
+		},
+		{
+			"var myArray = [1, 2, 3]; var i = myArray[0]; myArray[i]",
+			2,
+		},
+		{
+			"[1, 2, 3][3]",
+			nil,
+		},
+		{
+			"[1, 2, 3][-1]",
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
 		}
 	}
 }

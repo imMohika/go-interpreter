@@ -397,6 +397,8 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"add(a + b + c * d / f + g)",
 			"add((((a + b) + ((c * d) / f)) + g))",
 		},
+		{"a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)"},
+		{"add(a * b[2], b[1], 2 * [1, 2][1])", "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))"},
 	}
 
 	for _, tt := range tests {
@@ -713,6 +715,53 @@ func TestStringLiteralExpression(t *testing.T) {
 		if literal.Value != tt.expected {
 			t.Errorf("literal value wrong. want=%q, got=%q", tt.expected, literal.Value)
 		}
+	}
+}
+
+func TestArrayLiterals(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"[69,420,10+1]", []int{69, 420, 11}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		statement := program.Statements[0].(*ast.ExpressionStatement)
+		_, ok := statement.Value.(*ast.ArrayLiteral)
+		if !ok {
+			t.Fatalf("statement is not ast.ArrayLiteral. got=%T", statement.Value)
+		}
+
+		// todo))
+	}
+}
+
+func TestIndexExpression(t *testing.T) {
+	input := "arr[1+2]"
+
+	lxr := lexer.New(input)
+	p := New(lxr)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	indexExpr, ok := statement.Value.(*ast.IndexExpression)
+	if !ok {
+		t.Fatalf("statement is not ast.IndexExpression. got=%T", statement.Value)
+	}
+
+	if !testIdentifier(t, indexExpr.Left, "arr") {
+		return
+	}
+
+	if !testInfixExpression(t, indexExpr.Index, 1, "+", 2) {
+		return
 	}
 }
 
