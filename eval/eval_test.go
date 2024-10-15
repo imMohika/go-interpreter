@@ -262,8 +262,26 @@ func TestBuiltinFunction(t *testing.T) {
 		{`len("hello")`, 5},
 		{"len(`hello`)", 5},
 		{"len([1,2,3])", 3},
-		{`len(69)`, "argument to `len` not supported, got Integer"},
-		{`len("one", "one")`, "wrong number of arguments, got=2, want=1"},
+		{`len(69)`, object.Error{Message: "argument to `len` not supported, got Integer"}},
+		{`len("one", "one")`, object.Error{Message: "wrong number of arguments, got=2, want=1"}},
+		//{`puts("hello", "world!")`, nil},
+		{`head([1, 2, 3])`, 1},
+		{`head([])`, nil},
+		{`head("hello")`, "h"},
+		{`head("")`, nil},
+		{`head(1)`, object.Error{Message: "argument to `head` not supported, got Integer"}},
+		{`tail([1, 2, 3])`, []int{2, 3}},
+		{`tail([])`, nil},
+		{`tail("hello")`, "ello"},
+		{`tail("")`, nil},
+		{`last([1, 2, 3])`, 3},
+		{`tail(1)`, object.Error{Message: "argument to `tail` not supported, got Integer"}},
+		{`last([])`, nil},
+		{`last("hello")`, "o"},
+		{`last("")`, nil},
+		{`last(1)`, object.Error{Message: "argument to `last` not supported, got Integer"}},
+		{`push([], 1)`, []int{1}},
+		{`push(1, 1)`, object.Error{Message: "argument to `push` must be Array, got Integer"}},
 	}
 
 	for _, tt := range tests {
@@ -272,15 +290,24 @@ func TestBuiltinFunction(t *testing.T) {
 		switch expected := tt.expected.(type) {
 		case int:
 			testIntegerObject(t, evaluated, int64(expected))
-		case string:
+		case object.Error:
 			errObj, ok := evaluated.(*object.Error)
 			if !ok {
 				t.Errorf("object is not Error. got=%T(%v)", evaluated, evaluated)
 				continue
 			}
 
-			if errObj.Message != expected {
+			if errObj.Message != expected.Message {
 				t.Errorf("wrong error message, got=%q, want=%q", errObj.Message, expected)
+			}
+		case string:
+			str, ok := evaluated.(*object.String)
+			if !ok {
+				t.Errorf("object is not String. got=%T(%v)", evaluated, evaluated)
+				continue
+			}
+			if str.Value != expected {
+				t.Errorf("wrong string, got=%q, want=%q", str.Value, expected)
 			}
 		}
 	}
